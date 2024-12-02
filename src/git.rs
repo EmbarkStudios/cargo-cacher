@@ -211,7 +211,9 @@ fn modify_config(
             .context("failed to open local config")?;
         local_config.write_all(config.detect_newline_style())?;
         config
-            .write_to_filter(&mut local_config, &mut |s| {
+            .write_to_filter(&mut local_config, &mut |s: &gix::config::file::Section<
+                '_,
+            >| {
                 s.meta().source == gix::config::Source::Local
             })
             .context("failed to write submodules to config")?;
@@ -234,11 +236,8 @@ fn reset(repo: &mut gix::Repository, rev: gix::ObjectId) -> Result<()> {
         .context("unable to peel to tree")?
         .id;
 
-    use gix::odb::FindExt;
-    let index = gix::index::State::from_tree(&root_tree, |oid, buf| {
-        repo.objects.find_tree_iter(oid, buf).ok()
-    })
-    .with_context(|| format!("failed to create index from tree '{root_tree}'"))?;
+    let index = gix::index::State::from_tree(&root_tree, &repo.objects, Default::default())
+        .with_context(|| format!("failed to create index from tree '{root_tree}'"))?;
     let mut index = gix::index::File::from_state(index, repo.index_path());
 
     let opts = gix::worktree::state::checkout::Options {
@@ -250,10 +249,7 @@ fn reset(repo: &mut gix::Repository, rev: gix::ObjectId) -> Result<()> {
     gix::worktree::state::checkout(
         &mut index,
         workdir,
-        {
-            let objects = repo.objects.clone().into_arc()?;
-            move |oid, buf| objects.find_blob(oid, buf)
-        },
+        repo.objects.clone().into_arc()?,
         &Discard,
         &Discard,
         &Default::default(),
@@ -346,14 +342,13 @@ pub(crate) fn prepare_submodules(src: PathBuf, target: PathBuf, rev: gix::Object
                 .context("failed to find rev")?
                 .peel_to_tree()
                 .context("failed to peel rev to tree")?;
-            let mut buf = Vec::new();
             for subm in &mut submodules {
                 let span = tracing::info_span!("locating submodule head", name = %subm.name, path = %subm.path);
                 let _ms = span.enter();
 
                 let path = subm.path();
 
-                let entry = match tree.lookup_entry(path, &mut buf) {
+                let entry = match tree.lookup_entry(path) {
                     Ok(Some(e)) => e,
                     Ok(None) => {
                         tracing::warn!("unable to locate submodule path in tree");
@@ -365,7 +360,7 @@ pub(crate) fn prepare_submodules(src: PathBuf, target: PathBuf, rev: gix::Object
                     }
                 };
 
-                if !matches!(entry.mode(), gix::object::tree::EntryMode::Commit) {
+                if !entry.mode().is_commit() {
                     tracing::warn!(kind = ?entry.mode(), "path is not a submodule");
                     continue;
                 }
@@ -455,12 +450,12 @@ pub(crate) fn prepare_submodules(src: PathBuf, target: PathBuf, rev: gix::Object
             );
 
             config
-                .set_raw_value("committer", None, "name", "cargo-fetcher")
+                .set_raw_value(&"committer.name", "cargo-fetcher")
                 .context("failed to set committer.name")?;
             // Note we _have_ to set the email as well, but luckily gix does not actually
             // validate if it's a proper email or not :)
             config
-                .set_raw_value("committer", None, "email", "")
+                .set_raw_value(&"committer.email", "")
                 .context("failed to set committer.email")?;
             Ok(())
         })?;

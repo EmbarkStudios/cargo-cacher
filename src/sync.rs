@@ -370,11 +370,13 @@ pub async fn crates(ctx: &crate::Ctx) -> anyhow::Result<Summary> {
 
             match &krate.source {
                 Source::Registry(_rs) => {
-                    match {
+                    let fetch_result = {
                         let span = tracing::debug_span!("download");
                         let _ds = span.enter();
                         backend.fetch(krate.cloud_id(false)).await
-                    } {
+                    };
+
+                    match fetch_result {
                         Ok(krate_data) => {
                             Some((krate, Pkg::Registry(krate_data)))
                         }

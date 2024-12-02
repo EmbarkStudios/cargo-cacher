@@ -81,7 +81,7 @@ pub struct LocalId<'a> {
     inner: &'a Krate,
 }
 
-impl<'a> fmt::Display for LocalId<'a> {
+impl fmt::Display for LocalId<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match &self.inner.source {
             Source::Git(gs) => f.write_str(&gs.ident),
@@ -97,7 +97,7 @@ pub struct CloudId<'a> {
     is_checkout: bool,
 }
 
-impl<'a> fmt::Display for CloudId<'a> {
+impl fmt::Display for CloudId<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match &self.inner.source {
             Source::Git(gs) => write!(

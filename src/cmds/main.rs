@@ -68,7 +68,7 @@ enum Command {
 )]
 struct Opts {
     /// Path to a service account credentials file used to obtain
-    /// oauth2 tokens. By default uses GOOGLE_APPLICATION_CREDENTIALS
+    /// oauth2 tokens. By default uses `GOOGLE_APPLICATION_CREDENTIALS`
     /// environment variable.
     #[clap(short, long, env = "GOOGLE_APPLICATION_CREDENTIALS")]
     credentials: Option<PathBuf>,
