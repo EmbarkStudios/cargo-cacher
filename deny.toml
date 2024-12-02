@@ -1,43 +1,36 @@
+[graph]
 targets = [
-    { triple = "x86_64-unknown-linux-gnu" },
-    { triple = "aarch64-unknown-linux-gnu" },
-    { triple = "aarch64-unknown-linux-musl" },
-    { triple = "x86_64-unknown-linux-musl" },
-    { triple = "x86_64-apple-darwin" },
-    { triple = "aarch64-apple-darwin" },
-    { triple = "x86_64-pc-windows-msvc" },
+    "x86_64-unknown-linux-gnu",
+    "aarch64-unknown-linux-gnu",
+    "aarch64-unknown-linux-musl",
+    "x86_64-unknown-linux-musl",
+    "x86_64-apple-darwin",
+    "aarch64-apple-darwin",
+    "x86_64-pc-windows-msvc",
 ]
 all-features = true
 
 [advisories]
-unmaintained = "deny"
-unsound = "deny"
+yanked = "deny"
 ignore = []
 
 [bans]
 multiple-versions = "deny"
-deny = [{ name = "git2" }, { name = "openssl" }]
+deny = ["git2", "openssl"]
 skip = [
-    # nix
-    { name = "bitflags", version = "=1.3.2" },
     # tracing-subscriber and similar-asserts
-    { name = "regex-syntax", version = "=0.6.29" },
-    # hyper/tokio
-    { name = "socket2", version = "=0.4.10" },
-    # only a couple left on old 1.0 version
-    { name = "syn", version = "=1.0.109" },
+    { crate = "regex-syntax@0.6.29" },
+    { crate = "twox-hash@1.6.3", reason = "tame-oauth uses old version" },
+    { crate = "base64@0.21.7", reason = "rusty-s3 uses this old version, but really we should try and remove it from the graph altogether" },
+    { crate = "regex-automata@0.1.10", reason = "outdated for years, due to matchers, sigh" },
+    { crate = "hashbrown@0.14.5", reason = "dashmap from gix" },
 ]
 skip-tree = [
-    # similar
-    { name = "bstr", version = "=0.2.17" },
-    # ugh
-    { name = "windows-sys" },
-    # gix has a several duplicates I don't feel like dealing with atm
-    { name = "gix" },
+    { crate = "windows-sys@0.52.0", reason = "the usual" },
+    { crate = "thiserror@1.0.69" },
 ]
 
 [licenses]
-unlicensed = "deny"
 # We want really high confidence when inferring licenses from text
 confidence-threshold = 0.92
 allow = [
@@ -49,7 +42,7 @@ allow = [
     "MPL-2.0",
     "OpenSSL",
     "Zlib",
-    "Unicode-DFS-2016",
+    "Unicode-3.0",
 ]
 
 [[licenses.clarify]]

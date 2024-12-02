@@ -71,7 +71,7 @@ pub(crate) fn unpack_tar(buffer: Bytes, encoding: Encoding, dir: &Path) -> anyho
         Zstd(zstd::Decoder<'z, R>),
     }
 
-    impl<'z, R> io::Read for DecoderWrapper<'z, R>
+    impl<R> io::Read for DecoderWrapper<'_, R>
     where
         R: io::Read + io::BufRead,
     {
@@ -181,7 +181,7 @@ pub(crate) fn pack_tar(path: &Path) -> anyhow::Result<Bytes> {
     // #[allow(unsafe_code)]
     // unsafe impl<'z, W: io::Write + Sync> Sync for Writer<'z, W> {}
 
-    impl<'z, W> io::Write for Writer<'z, W>
+    impl<W> io::Write for Writer<'_, W>
     where
         W: io::Write,
     {

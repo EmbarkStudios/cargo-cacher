@@ -125,7 +125,7 @@ impl crate::Backend for S3Backend {
         let parsed = ListObjectsV2::parse_response(&text).context("failed parsing updated info")?;
         let last_modified = &parsed
             .contents
-            .get(0)
+            .first()
             .context("could not locate update info")?
             .last_modified;
 

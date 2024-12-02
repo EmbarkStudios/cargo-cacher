@@ -7,7 +7,6 @@ use anyhow::Error;
 use std::fmt;
 
 pub use list::parse_list_body;
-pub use list::EnumerationResults;
 
 pub struct PropertiesResponse {
     pub last_modified: String,
